@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Prediction Result</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script>
+        function animateCount(target) {
+            let current = 0;
+            let step = Math.max(1, Math.ceil(target / 50)); // Steps
+            let interval = setInterval(() => {
+                current += step;
+                if (current >= target) {
+                    current = target;
+                    clearInterval(interval);
+                }
+                document.getElementById('count-value').innerText = current + " Units";
+            }, 20);
+        }
+
+        window.onload = function() {
+            let prediction = Number("{{ prediction|safe }}"); // Ensure it's a number
+            if (!isNaN(prediction)) {
+                animateCount(prediction);
+            } else {
+                document.getElementById('count-value').innerText = "Error";
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h2>Predicted EV Sales</h2>
+        <div class="result-box">
+            Predicted EV Sales Quantity:
+            <div class="result-value" id="count-value">0 Units</div>
+        </div>
+        <a href="/" class="back-btn">🔙 Back to Home</a>
+    </div>
+</body>
+</html>

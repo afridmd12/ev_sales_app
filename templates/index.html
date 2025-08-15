@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>EV Sales Predictor in India</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>EV Sales Predictor in India</h2>
+        <form method="POST" action="/predict">
+
+            <!-- Calendar Picker -->
+            <label>Select Date:</label>
+            <input type="date" name="date" min="2004-01-01" max="2024-12-31" required>
+
+            <!-- State Dropdown -->
+            <label>State:</label>
+            <select name="state" required>
+                {% for s in states %}
+                    <option value="{{ s }}">{{ s }}</option>
+                {% endfor %}
+            </select>
+
+            <!-- Vehicle Class Dropdown -->
+            <label>Vehicle Class:</label>
+            <select name="vehicle_class" required>
+                {% for vc in vehicle_classes %}
+                    <option value="{{ vc }}">{{ vc }}</option>
+                {% endfor %}
+            </select>
+
+            <!-- Vehicle Category Dropdown -->
+            <label>Vehicle Category:</label>
+            <select name="vehicle_category" required>
+                {% for cat in vehicle_categories %}
+                    <option value="{{ cat }}">{{ cat }}</option>
+                {% endfor %}
+            </select>
+
+            <!-- Vehicle Type Dropdown -->
+            <label>Vehicle Type:</label>
+            <select name="vehicle_type" required>
+                {% for vt in vehicle_types %}
+                    <option value="{{ vt }}">{{ vt }}</option>
+                {% endfor %}
+            </select>
+
+            <!-- Submit -->
+            <input type="submit" value="Predict EV Sales">
+        </form>
+    </div>
+</body>
+</html>
