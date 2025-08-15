@@ -11,16 +11,17 @@ app = Flask(__name__)
 DATA_PATH = 'data/EV_Dataset.csv'
 MODEL_PATH = 'model/model.pkl'
 
-# ===== TRAIN MODEL IF NOT EXISTS =====
+# ===== TRAIN MODEL FUNCTION =====
 def train_and_save_model():
     df = pd.read_csv(DATA_PATH)
 
-    # Clean and preprocess
+    # Clean & preprocess
     df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
     df['Year'] = df['Year'].astype(int)
     df['Month'] = df['Date'].dt.month
     df['Day'] = df['Date'].dt.day
-    df.drop(['Month_Name'], axis=1, inplace=True)
+    if 'Month_Name' in df.columns:
+        df.drop(['Month_Name'], axis=1, inplace=True)
 
     categorical = ['State', 'Vehicle_Class', 'Vehicle_Category', 'Vehicle_Type']
     for col in categorical:
@@ -40,56 +41,46 @@ def train_and_save_model():
     os.makedirs('model', exist_ok=True)
     joblib.dump((model, X.columns.tolist()), MODEL_PATH)
     print(f"✅ Model trained and saved at {MODEL_PATH}")
+    return model, X.columns.tolist()
 
-# Train model if not exists
+# ===== LOAD OR TRAIN MODEL =====
 if not os.path.exists(MODEL_PATH):
-    train_and_save_model()
-
-# Load model
-model, model_columns = joblib.load(MODEL_PATH)
+    print("⚠ model.pkl not found — training a new model...")
+    model, model_columns = train_and_save_model()
+else:
+    model, model_columns = joblib.load(MODEL_PATH)
 
 # ===== ROUTES =====
 @app.route('/')
 def home():
     df_raw = pd.read_csv(DATA_PATH)
 
-    # Strip spaces to fix dropdown issues
     for col in ['State', 'Vehicle_Class', 'Vehicle_Category', 'Vehicle_Type']:
         df_raw[col] = df_raw[col].astype(str).str.strip()
 
-    states = sorted(df_raw['State'].unique())
-    vehicle_classes = sorted(df_raw['Vehicle_Class'].unique())
-    vehicle_categories = sorted(df_raw['Vehicle_Category'].unique())
-    vehicle_types = sorted(df_raw['Vehicle_Type'].unique())
-
     return render_template(
         'index.html',
-        states=states,
-        vehicle_classes=vehicle_classes,
-        vehicle_categories=vehicle_categories,
-        vehicle_types=vehicle_types
+        states=sorted(df_raw['State'].unique()),
+        vehicle_classes=sorted(df_raw['Vehicle_Class'].unique()),
+        vehicle_categories=sorted(df_raw['Vehicle_Category'].unique()),
+        vehicle_types=sorted(df_raw['Vehicle_Type'].unique())
     )
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    # Parse date
     selected_date = request.form['date']
     date_obj = datetime.strptime(selected_date, '%Y-%m-%d')
-    year = date_obj.year
-    month = date_obj.month
-    day = date_obj.day
+    year, month, day = date_obj.year, date_obj.month, date_obj.day
 
-    # Get other inputs
     state = request.form['state'].strip()
     vehicle_class = request.form['vehicle_class'].strip()
     vehicle_category = request.form['vehicle_category'].strip()
     vehicle_type = request.form['vehicle_type'].strip()
 
-    # ===== LOOKUP FIRST =====
+    # Lookup in dataset first
     df = pd.read_csv(DATA_PATH)
     df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
     df['Year'] = df['Year'].astype(int)
-
     for col in ['State', 'Vehicle_Class', 'Vehicle_Category', 'Vehicle_Type']:
         df[col] = df[col].astype(str).str.strip()
 
@@ -104,10 +95,9 @@ def predict():
     ]
 
     if not match.empty:
-        prediction = int(match['EV_Sales_Quantity'].iloc[0])
-        return render_template('result.html', prediction=prediction)
+        return render_template('result.html', prediction=int(match['EV_Sales_Quantity'].iloc[0]))
 
-    # ===== FALLBACK TO ML PREDICTION =====
+    # ML Prediction fallback
     input_data = pd.DataFrame([[0] * len(model_columns)], columns=model_columns)
     input_data['Year'] = year
     input_data['Month'] = month
@@ -126,6 +116,4 @@ def predict():
     return render_template('result.html', prediction=int(prediction))
 
 if __name__ == '__main__':
-    import os
-    port = int(os.environ.get('PORT', 2004))
-    app.run(host='0.0.0.0', port=port, debug=False)
+    app.run(debug=True, port=2004)
