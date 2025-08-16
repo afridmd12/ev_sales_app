@@ -16,6 +16,7 @@
             <!-- State Dropdown -->
             <label>State:</label>
             <select name="state" required>
+                <option value="" selected disabled>Select State</option>
                 {% for s in states %}
                     <option value="{{ s }}">{{ s }}</option>
                 {% endfor %}
@@ -24,6 +25,7 @@
             <!-- Vehicle Class Dropdown -->
             <label>Vehicle Class:</label>
             <select name="vehicle_class" required>
+                <option value="" selected disabled>Select Vehicle Class</option>
                 {% for vc in vehicle_classes %}
                     <option value="{{ vc }}">{{ vc }}</option>
                 {% endfor %}
@@ -32,6 +34,7 @@
             <!-- Vehicle Category Dropdown -->
             <label>Vehicle Category:</label>
             <select name="vehicle_category" required>
+                <option value="" selected disabled>Select Vehicle Category</option>
                 {% for cat in vehicle_categories %}
                     <option value="{{ cat }}">{{ cat }}</option>
                 {% endfor %}
@@ -40,6 +43,7 @@
             <!-- Vehicle Type Dropdown -->
             <label>Vehicle Type:</label>
             <select name="vehicle_type" required>
+                <option value="" selected disabled>Select Vehicle Type</option>
                 {% for vt in vehicle_types %}
                     <option value="{{ vt }}">{{ vt }}</option>
                 {% endfor %}
